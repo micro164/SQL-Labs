@@ -1,0 +1,135 @@
+Lab Notes
+
+--Procedure for entering a row with min. amt. of values to emp
+create or replace procedure new_emp(id in number, name in char, d in number)
+    is
+    begin
+        insert into emp(empno, ename, deptno) values(id, name, d);
+    end;
+/
+
+--How to execute the procedure
+execute new_emp(33,'Tay',10);
+
+--Creating a procedure to enter min. amt. of values to dept
+create or replace procedure new_dept(id in number, name in char)
+    is
+        number_exception exception;
+    begin
+        if id < 0 or id > 99 then
+            raise number_exception;
+        end if;
+        insert into dept(deptno, dname) values(id, name);
+  
+       exception
+           when number_exception then
+               raise_application_error(-20101,'Invalid Department Number');
+   end;
+/
+
+--How to execute the procedure
+execute new_dept(55, 'NewDept')
+
+
+--Trigger for updating names to uppercase when inserted or updated
+create or replace trigger emp_bef_upd_ins_row2
+    before insert or update of ename on emp
+    for each row
+    begin
+        :new.ename := upper(:new.ename);
+    end;
+/
+
+--Nested tables: tables that are stored in a table (sortof)
+--_Ty is just a convention, but a good one to follow
+
+--An object with the name Animal_ty
+create type Animal_ty as object(
+    breed       varchar2(25),
+    name        varhcar2(25),
+    birthdate   date);
+/
+
+--Creating a nested table called Animals_NT from Animal_Ty
+create type Animals_NT as table of Animal_Ty;
+/
+
+--Creates a table Breeders with variables name and nested table of animals
+create table Breeders(
+    BreederName     varchar2(25),
+    Animals         Animals_NT)
+nested table Animals store as Animals_NT_TAB;
+
+--s at the end of animals is important for convention
+
+--How to insert into a table that has a nested table
+insert into Breeders(BreederName, Animals) values('Jane Doe', 
+Animals_NT(
+Animal_Ty('cat','dickens','15-apr-00'),
+Animal_Ty('dog','Dog','15-sep-07'),
+Animal_Ty('dog','Tank','14-sep-09')
+)
+
+--Examples of select statements involving a table with a nested table
+select BreederName, N.Name, N.Birthdate from Breeders, TABLE(Breeders.Animals) N;
+
+select BreederName, N.Name, N.Birthdate from Breeders, TABLE(Breeders.Animals) N where N.Name = 'Tank';
+);
+
+--Example of why to use a nested table: if keeping records of employee there may be dependents which can be held in a nested table
+
+--Examples of using the insert, update, and delete statments with a table that has a nested table
+insert into TABLE(select Animals from Breeders where BreederName = 'Jane Doe') values (Animal_ty('dog','charlie','01-Jan-15'));
+
+update TABLE(select Animals from Breeders where BreederName = 'Jane Doe') N set N.Birthdate = '25-Dec-10' where N.Name = 'charlie';
+
+delete TABLE(select Animals from Breeders where BreederName = 'Jane Doe') N where N.Name = 'Tank';
+
+--CRUD: CREATE, READ, UPDATE, DELETE
+
+--Table named SUPPLY that holds a progect, part, and name
+create table SUPPLY(
+Sname varchar2(25),
+Part  varchar2(25),
+Project varchar2(10))
+/
+
+--EXAMPLE OF JOIN DEPENDENCY
+
+--Inserting data into the table SUPPLY
+insert into SUPPLY (Sname,Part,Project) values('Smith','Bolt','X');
+insert into SUPPLY (Sname,Part,Project) values('Smith','Nut','Y');
+insert into SUPPLY (Sname,Part,Project) values('Adamsky','Bolt','Y');
+insert into SUPPLY (Sname,Part,Project) values('Walton','Nut','Z');
+insert into SUPPLY (Sname,Part,Project) values('Adamsky','Nail','X');
+
+--Tables created out of parts of the SUPPLY table
+create table Tab1 as select Sname, Part from SUPPLY;
+create table Tab2 as select Sname, Project from SUPPLY;
+create table Tab3 as select Part, Project from SUPPLY;
+
+--Selecting the tables and joining them together
+select distinct * from Tab1 natural join Tab2 natural join Tab3;
+
+--Output from the select statement
+Smith|Bolt|X
+Smith|Bolt|Y
+Smith|Nut|Y
+Adamsky|Bolt|X
+Adamsky|Bolt|Y
+Walton|Nut|Z
+Adamsky|Nail|X
+
+/*It can be seen that the table made from joining the tables, that are pieces of
+the original table, do not produce the original table. The new table has more rows
+than the original, which violates R(A,B,C) = R[A,B] * R[A,C]. 
+
+--END OF JOIN DEPENDENCY EXAMPLE
+
+--Using the sql developer
+Steps:
+Open sql developer
+click on green plus sign
+enter username and password
+Change Hostname to oracle.cs.semo.edu
+Change to service name and enter orcl
