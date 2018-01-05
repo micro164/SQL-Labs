@@ -1,0 +1,40 @@
+Show how to convert the date 14 October 1066 into the form used by oracle
+SQL> select TO_DATE('14 October 1066') FROM DUAL;
+
+TO_DATE('
+---------
+14-OCT-66
+
+Show how to convert the date June 25, 745 B.C. into Oracle form.
+SQL> select TO_DATE('June 25, 745 B.C.', 'mon dd, yyyy B.C.') from DUAL;
+
+TO_DATE('
+---------
+25-JUN-45
+
+Convert your birth date into the number of days from Jan 1, 4712 B.C.
+SQL> select to_date('jan 1, 1995', 'mon dd, yyyy') - to_date(1, 'j') + 1 from du
+al;
+
+TO_DATE('JAN1,1995','MONDD,YYYY')-TO_DATE(1,'J')+1
+--------------------------------------------------
+                                           2449719
+                                           
+Show how to convert the oracle date 23-FEB-12 to the form 23 Februray, 2012
+SQL> select to_char(to_date('23-FEB-12', 'dd-mon-yy'), 'dd month, yyyy') from du
+al;
+
+TO_CHAR(TO_DATE('2
+------------------
+23 february , 2012
+
+Show how to convert the Oracle Date 23-FEB-12 to the form Thursday, Twenty-Third
+Februray, Two Thousand Twelve
+
+SQL> select to_char(to_date('23-FEB-12', 'dd-mon-yy'), 'day, DDSP MONTH, YEAR')
+from dual;
+
+TO_CHAR(TO_DATE('23-FEB-12','DD-MON-YY'),'DAY,DDSPMONTH,YEAR')
+-----------------------------------------------------------------------------
+thursday , TWENTY-THREE FEBRUARY , TWENTY TWELVE
+

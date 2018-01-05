@@ -1,0 +1,312 @@
+--Jonathon Bryant
+--#'s left to do: 6, 7, 10, 12, 13, 16, 27
+
+sqlite> .h on
+sqlite> .m col
+sqlite> select * from emp;
+EMPNO       ENAME       JOB         MGR         HIREDATE    SAL         COMM        DEPTNO
+----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------
+7839        KING        PRESIDENT               17-NOV-81   5000                    10
+...
+7566        JONES       MANAGER     7839        2-APR-81    2975                    20
+...
+7934        MILLER      CLERK       7782        23-JAN-82   1300                    10
+
+sqlite> update emp set job = 'MANAGER', deptno = 20, sal = sal + 1000 where ename = 'JONES';
+sqlite> select * from emp;
+EMPNO       ENAME       JOB         MGR         HIREDATE    SAL         COMM        DEPTNO
+----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------
+7839        KING        PRESIDENT               17-NOV-81   5000                    10
+...
+7566        JONES       MANAGER     7839        2-APR-81    3975                    20
+...
+7934        MILLER      CLERK       7782        23-JAN-82   1300                    10
+
+sqlite> create table emp2 as select * from emp;
+sqlite> select * from emp2;
+EMPNO       ENAME       JOB         MGR         HIREDATE    SAL         COMM        DEPTNO
+----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------
+7839        KING        PRESIDENT               17-NOV-81   5000                    10
+...
+7934        MILLER      CLERK       7782        23-JAN-82   1300                    10
+
+sqlite> insert into emp2 (empno, ename, job, mgr, sal, deptno) values (7799, 'TAYLOR', 'COMPSCI', 7779, 2900, 10);
+sqlite> select * from emp2;
+EMPNO       ENAME       JOB         MGR         HIREDATE    SAL         COMM        DEPTNO
+----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------
+7839        KING        PRESIDENT               17-NOV-81   5000                    10
+...
+7799        TAYLOR      COMPSCI     7779                    2900                    10
+
+sqlite> update emp2 set hiredate = '20-JAN-95' where ename = 'TAYLOR';
+sqlite> select * from emp2;
+EMPNO       ENAME       JOB         MGR         HIREDATE    SAL         COMM        DEPTNO
+----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------
+7839        KING        PRESIDENT               17-NOV-81   5000                    10
+...
+7799        TAYLOR      COMPSCI     7779        20-JAN-95   2900                    10
+
+sqlite> update emp2 set deptno = 10, job = 'MANAGER', sal = sal + 1500 where ename = 'JONES';
+sqlite> select * from emp2;
+EMPNO       ENAME       JOB         MGR         HIREDATE    SAL         COMM        DEPTNO
+----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------
+7839        KING        PRESIDENT               17-NOV-81   5000                    10
+...
+7566        JONES       MANAGER     7839        2-APR-81    5475                    10
+...
+7799        TAYLOR      COMPSCI     7779        20-JAN-95   2900                    10
+
+sqlite> update emp2 set sal = (select min(sal) from emp where job = 'MANAGER') where job = 'SALESMAN' and deptno =
+30;
+
+sqlite> select ename, job, sal from emp2 where job = 'SALESMAN';
+ENAME       JOB         SAL
+----------  ----------  ----------
+MARTIN      SALESMAN    2450
+ALLEN       SALESMAN    2450
+TURNER      SALESMAN    2450
+WARD        SALESMAN    2450
+
+
+sqlite> delete from emp2 where job = 'MANAGER';
+sqlite> select * from emp2;
+EMPNO       ENAME       JOB         MGR         HIREDATE    SAL         COMM        DEPTNO
+----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------
+7839        KING        PRESIDENT               17-NOV-81   5000                    10
+7654        MARTIN      SALESMAN    7698        28-SEP-81   2450        1400        30
+7499        ALLEN       SALESMAN    7698        20-FEB-81   2450        300         30
+7844        TURNER      SALESMAN    7698        8-SEP-81    2450        0           30
+7900        JAMES       CLERK       7698        3-DEC-81    950                     30
+7521        WARD        SALESMAN    7698        22-FEB-81   2450        500         30
+7902        FORD        ANALYST     7566        3-DEC-81    3000                    20
+7369        SMITH       CLERK       7902        17-DEC-80   800                     20
+7788        SCOTT       ANALYST     7566        09-DEC-82   3000                    20
+7876        ADAMS       CLERK       7788        12-JAN-83   1100                    20
+7934        MILLER      CLERK       7782        23-JAN-82   1300                    10
+7799        TAYLOR      COMPSCI     7779        20-JAN-95   2900                    10
+
+
+sqlite> BEGIN;
+sqlite> delete from emp2 where ename = 'KING';
+sqlite> select * from emp2;
+EMPNO       ENAME       JOB         MGR         HIREDATE    SAL         COMM        DEPTNO
+----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------
+7654        MARTIN      SALESMAN    7698        28-SEP-81   2450        1400        30
+...
+7934        MILLER      CLERK       7782        23-JAN-82   1300                    10
+
+sqlite> ROLLBACK;
+sqlite> select * from emp2;
+EMPNO       ENAME       JOB         MGR         HIREDATE    SAL         COMM        DEPTNO
+----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------
+7839        KING        PRESIDENT               17-NOV-81   5000                    10
+...
+7934        MILLER      CLERK       7782        23-JAN-82   1300                    10
+
+--Questions in Oracle
+1. List the names of all employees in upper case letters, lower case letters, and with first letter 
+   capitalized.
+
+SQL> select upper(ename), lower(ename), substr(ename,1,1) || lower(substr(ename,2)) from emp;
+
+UPPER(ENAM LOWER(ENAM SUBSTR(ENA
+---------- ---------- ----------
+KING       king       King
+...
+MILLER     miller     Miller
+
+2.	List the names of all employees who are not customer representatives.
+SQL> select ename from emp where empno not in (select repid from customer);
+
+ENAME
+----------
+SMITH
+...
+MILLER
+
+3.  List each customer representative name and the description of the products they have sold, 
+	ordered by the customer representative name.
+SQL> select ename, descrip from emp, customer, product where empno = repid group by ename, descrip;
+
+ENAME      DESCRIP
+---------- ------------------------------
+ALLEN      ACE TENNIS RACKET II
+...
+TURNER     SB VITA SNACK-6 PACK
+
+4. List the names of all customers whose names do not have 2 or more T's.
+SQL> select name from customer where name not like '%T%T%';
+
+NAME
+---------------------------------------------
+JOCKSPORTS
+...
+WOMENS SPORTS
+
+5. List the customers name and their representatives name for all customers in California.
+SQL> select name, ename from emp, customer where empno = repid AND lower(state) = 'ca';
+
+NAME                                          ENAME
+--------------------------------------------- ----------
+JOCKSPORTS                                    TURNER
+...
+WOMENS SPORTS                                 ALLEN
+
+6. List the average salary by job title where the average salary is greater than 2500. 
+	order the result in desc order of the avg sal.
+
+
+7. List the avg, min, max sal by job where the min sal is > 2000 in ascd order by job.
+
+8. List the names of all customers who have orders - no company should by listed twice.
+SQL> select distinct name from customer, ord where customer.custid = ord.custid;
+
+NAME
+---------------------------------------------
+JOCKSPORTS
+...
+NORTH WOODS HEALTH AND FITNESS SUPPLY CENTER
+
+9. List the empno and ename for all emp who are clerks or analysts and who do not earn btw 850 and 1200.
+SQL> select ename, empno from emp where job in('ANALYST','CLERK') and sal between 850 and 1200;
+
+ENAME           EMPNO
+---------- ----------
+JAMES            7900
+ADAMS            7876
+
+10. Find the avg sal of customer rep using nested select.
+
+11. Find the avg credit limit of customers (where avg > 1000) grouped by state for all states 
+	which begin with the letter C or the letter M, in desc order by avg credit limit.
+SQL> select avg(creditlimit), state from customer where creditlimit > 1000 group by state order
+  2  by avg(creditlimit) desc;
+
+AVG(CREDITLIMIT) ST
+---------------- --
+            8000 MN
+            7000 CA
+
+12. List the name of employees who manage others and the number of people they manage.
+	Not all employees who manage have the job title manager.
+
+13. Create a select to list product sales. Specifically list the repid and name, customer id and name, 
+	product id and description, and the total dollar amount of sales of the product to the company, 
+	when the amounts are > 1000 and the companies are in CA.
+
+14. List the name who has job title MANAGER.
+SQL> select ename from emp where job = 'MANAGER';
+
+ENAME
+----------
+BLAKE
+CLARK
+JONES
+
+15. List the names of each employee who is someone's manager.
+SQL> select distinct e.ename from emp e, emp m where e.empno = m.mgr;
+
+ENAME
+----------
+CLARK
+...
+JONES
+
+16. List the name of each employee who has a sal btw 2000 and 3000 and who gets comm.
+
+17. List the name of job title of each emp whose name containes two O's and whose job title
+	contains an E.
+SQL> select ename, job from emp where job like '%E%' and ename like '%O%O%';
+
+no rows selected
+
+18. List each employee's name along with the name of their manager.
+
+SQL> select m.ename, e.ename from emp e, emp m where e.empno = m.mgr;
+
+ENAME      ENAME
+---------- ----------
+SCOTT      JONES
+...
+SMITH      FORD
+
+19. List the names of all employees who do not get comm.
+SQL> select ename from emp where comm is null;
+
+ENAME
+----------
+KING
+...
+MILLER
+
+20. Using IN with a sub select find the names of all employees wh oare not customer representatives.
+SQL> select ename from emp where empno not in(select repid from customer);
+
+ENAME
+----------
+SMITH
+...
+MILLER
+
+
+21. Using EXISTS with a sub select find the names of all employees who are not customer rep.
+SQL> select ename from emp where not exists(select repid from customer where repid = empno);
+
+ENAME
+----------
+SMITH
+...
+MILLER
+
+22. List each customer rep name and the description of the products they have sold, ordered by the
+	customer rep name.
+SQL> select distinct ename, descrip from emp, customer, product where empno = repid order by ename;
+
+ENAME      DESCRIP
+---------- ------------------------------
+ALLEN      ACE TENNIS BALLS-3 PACK
+...
+WARD       SP TENNIS RACKET
+
+40 rows selected.
+
+23. List the names of all managers along with the name of the dept they are in.
+SQL> select ename, dname from emp e, dept d where job = 'MANAGER' and e.deptno = d.deptno;
+
+ENAME      DNAME
+---------- --------------
+CLARK      ACCOUNTING
+JONES      RESEARCH
+BLAKE      SALES
+
+24. Count the number of employeein each dept, listing the dept name along with the count.
+SQL> select dname, count(ename) from dept d, emp e where e.deptno = d.deptno group by dname;
+
+DNAME          COUNT(ENAME)
+-------------- ------------
+RESEARCH                  5
+SALES                     6
+ACCOUNTING                3
+
+25. List the avg sal by job title where the avg sal is > 2500.
+	order by desc order of avg sal.
+SQL> select job, avg(sal) from emp group by job having avg(sal) > 2500 order by avg(sal) desc;
+
+JOB         AVG(SAL)
+--------- ----------
+PRESIDENT       5000
+ANALYST         3000
+MANAGER   2758.33333
+
+26. List all dept by name and the number of employees of each when they have more than five employees.
+SQL> select dname, count(ename) from dept d, emp e where e.deptno = d.deptno group by dname
+  2  having count(ename) > 5;
+
+DNAME          COUNT(ENAME)
+-------------- ------------
+SALES                     6
+
+
+27. Find the total for each order where the total is computed by multiplying the ACTUALPRICE 
+	and QTY of each item in the order.
+

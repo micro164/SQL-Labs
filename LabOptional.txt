@@ -1,0 +1,83 @@
+create type Teachers_ty as object(
+TeacherName varchar2(25),
+TeacherSal  number
+)
+/
+
+create type Teachers_nt as table of Teachers_ty;
+/
+
+Create type Courses_ty as object(
+CourseName  varchar2(25),
+CourseNum   number
+)
+/
+
+Create type Courses_nt as table of Courses_ty;
+/
+
+create table School(
+Department  varchar2(25),
+Teachers    Teachers_nt,
+Courses     Courses_nt,
+Constraint Dept_PK PRIMARY KEY (Department)
+)
+nested table Teachers store as Teachers_nt_tab,
+nested table Courses store as Courses_nt_tab;
+
+insert into School(Department, Teachers, Courses) values('Computer Science',
+Teachers_nt(
+Teachers_ty('Dr. W. Weber', 1),
+Teachers_ty('Dr. H. Hays', 2),
+Teachers_ty('Dr. J. Hays', 3)
+),
+Courses_nt(
+Courses_ty('Java', 331),
+Courses_ty('Database Systems', 440)
+)
+);
+
+insert into School(Department, Teachers, Courses) values('Mathematics',
+Teachers_nt(
+Teachers_ty('Dr. T. Wallgren', 4)
+),
+Courses_nt(
+Courses_ty('Modern Algebra', 155),
+Courses_ty('Differential Equations', 140)
+)
+);
+
+select Department, T.TeacherName, C.CourseName from School, TABLE(School.Teachers) T, TABLE(School.Courses) C;
+
+DEPARTMENT                TEACHERNAME               COURSENAME
+------------------------- ------------------------- -----------------------
+Computer Science          Dr. W. Weber              Java
+Computer Science          Dr. W. Weber              Database Systems
+Computer Science          Dr. H. Hays               Java
+Computer Science          Dr. H. Hays               Database Systems
+Computer Science          Dr. J. Hays               Java
+Computer Science          Dr. J. Hays               Database Systems
+Mathematics               Dr. T. Wallgren           Modern Algebra
+Mathematics               Dr. T. Wallgren           Differential Equations
+
+select Department, T.TeacherName, C.CourseName from School, TABLE(School.Teachers) T, TABLE(School.Courses) C where T.TeacherName = 'Dr. H. Hays';
+
+DEPARTMENT                TEACHERNAME               COURSENAME
+------------------------- ------------------------- -----------------
+Computer Science          Dr. H. Hays               Java
+Computer Science          Dr. H. Hays               Database Systems
+
+select T.TeacherSal AS "Teacher ID", T.TeacherName, C.CourseName, C.CourseNum from School, TABLE(School.Teachers) T, TABLE(School.Courses) C;
+
+Teacher ID TEACHERNAME               COURSENAME                 COURSENUM
+---------- ------------------------- ------------------------- ----------
+         1 Dr. W. Weber              Java                             331
+         1 Dr. W. Weber              Database Systems                 440
+         2 Dr. H. Hays               Java                             331
+         2 Dr. H. Hays               Database Systems                 440
+         3 Dr. J. Hays               Java                             331
+         3 Dr. J. Hays               Database Systems                 440
+         4 Dr. T. Wallgren           Modern Algebra                   155
+         4 Dr. T. Wallgren           Differential Equations           140
+
+8 rows selected.

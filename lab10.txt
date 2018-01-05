@@ -1,0 +1,34 @@
+--Table named SUPPLY that holds a progect, part, and name
+create table SUPPLY(
+Sname varchar2(25),
+Part  varchar2(25),
+Project varchar2(10))
+/
+
+--Inserting data into the table SUPPLY
+insert into SUPPLY (Sname,Part,Project) values('Smith','Bolt','X');
+insert into SUPPLY (Sname,Part,Project) values('Smith','Nut','Y');
+insert into SUPPLY (Sname,Part,Project) values('Adamsky','Bolt','Y');
+insert into SUPPLY (Sname,Part,Project) values('Walton','Nut','Z');
+insert into SUPPLY (Sname,Part,Project) values('Adamsky','Nail','X');
+
+--Tables created out of parts of the SUPPLY table
+create table Tab1 as select Sname, Part from SUPPLY;
+create table Tab2 as select Sname, Project from SUPPLY;
+create table Tab3 as select Part, Project from SUPPLY;
+
+--Selecting the tables and joining them together
+select distinct * from Tab1 natural join Tab2 natural join Tab3;
+
+--Output from the select statement
+Smith|Bolt|X
+Smith|Bolt|Y
+Smith|Nut|Y
+Adamsky|Bolt|X
+Adamsky|Bolt|Y
+Walton|Nut|Z
+Adamsky|Nail|X
+
+/*It can be seen that the table made from joining the tables, that are pieces of
+the original table, do not produce the original table. The new table has more rows
+than the original, which violates R(A,B,C) = R[A,B] * R[A,C]. 

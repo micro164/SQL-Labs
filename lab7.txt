@@ -1,0 +1,168 @@
+SQL> comment on table emp is 'Employee Table';
+
+Comment created.
+
+SQL> comment on column emp.sal is 'Salary of Employees';
+
+Comment created.
+
+SQL> create table emp3(
+  2  id      number(5),
+  3  last    varchar2(15),
+  4  first   varchar2(12),
+  5  mgr     number(5),
+  6  name    varchar(30) generated always as(initcap(last) || ', ' || initcap(fi
+rst)) virtual,
+  7  constraint emp3_pk primary key(id),
+  8  constraint emp3_fk foreign key(mgr) references emp3(id)
+  9  )
+ 10  /
+
+Table created.
+
+SQL> create or replace function square(n number) return number
+  2  is
+  3  begin
+  4      return n*n;
+  5  end square;
+  6  /
+
+Function created.
+
+SQL> select sal, square(sal) from emp;
+
+       SAL SQUARE(SAL)
+---------- -----------
+      5000    25000000
+      2850     8122500
+      2450     6002500
+      2975     8850625
+      1250     1562500
+      1600     2560000
+      1500     2250000
+       950      902500
+      1250     1562500
+      3000     9000000
+       800      640000
+
+       SAL SQUARE(SAL)
+---------- -----------
+      3000     9000000
+      1100     1210000
+      1300     1690000
+      
+SQL> create or replace function factr(n natural) return number
+  2  is
+  3      y number := 1;
+  4  begin
+  5      if n > 1 then
+  6          y := n * factr(n-1);
+  7      end if;
+  8      return y;
+  9  end factr;
+ 10  /
+
+Function created.
+
+SQL> select factr(5) from dual;
+
+  FACTR(5)
+----------
+       120
+       
+SQL> create or replace function today
+  2  return varchar2
+  3  as
+  4  begin
+  5      return to_char(sysdate,'MM/DD/YYYY');
+  6  end;
+  7  /
+
+Function created.
+
+SQL> select today from dual;
+
+TODAY
+-------------------------------
+
+03/28/2017
+
+SQL> create or replace function myDate(d in date)
+  2      return varchar2
+  3      is
+  4          strDate varchar2(25);
+  5      begin
+  6          strDate := to_char(d, 'fmMonth dd, yyyy');
+  7          return(strDate);
+  8      end;
+  9  /
+
+Function created.
+
+SQL> select myDate(sysdate) from dual;
+
+MYDATE(SYSDATE)
+---------------------------------------
+
+March 28, 2017
+
+SQL> create or replace procedure new_emp(id in number, name in char, d in number
+)
+  2  is
+  3  begin
+  4      insert into emp(empno, ename, deptno) values(id, name, d);
+  5  end;
+  6  /
+
+Procedure created.
+
+SQL> execute new_emp(33,'Tay',10);
+
+PL/SQL procedure successfully completed.
+
+SQL> create or replace procedure new_dept(id in number, name in char)
+  2  is
+  3      number_exception exception;
+  4  begin
+  5      if id < 0 or id > 99 then
+  6          raise number_exception;
+  7      end if;
+  8      insert into dept(deptno, dname) values(id, name);
+  9
+ 10      exception
+ 11          when number_exception then
+ 12              raise_application_error(-20101,'Invalid Department Number');
+ 13  end;
+ 14  /
+
+Procedure created.
+
+SQL> execute new_dept(55, 'NewDept')
+
+PL/SQL procedure successfully completed.
+
+SQL> create or replace trigger emp_bef_upd_ins_row2
+  2  before insert or update of ename on emp
+  3  for each row
+  4  begin
+  5      :new.ename := upper(:new.ename);
+  6  end;
+  7  /
+
+Trigger created.
+
+SQL> execute new_emp(12,'taylor',10)
+
+PL/SQL procedure successfully completed.
+
+SQL> select * from emp;
+
+     EMPNO ENAME      JOB              MGR HIREDATE         SAL       COMM
+---------- ---------- --------- ---------- --------- ---------- ----------
+    DEPTNO
+----------
+        33 Tay
+        10
+
+        12 TAYLOR
+        10

@@ -1,0 +1,71 @@
+Author: Jonathon Bryant
+
+--Create an object of type Animal
+SQL> create type Animal_ty as object(
+  2  breed varchar2(25),
+  3  name varchar2(25),
+  4  birthdate date);
+  5  /
+
+Type created.
+
+--Create a nested table of type Animal
+SQL> create type Animals_NT as table of Animal_ty;
+  2  /
+
+Type created.
+
+--Create a table of Breeders, with Animals as a nested table
+SQL> create table Breeders(
+  2  BreederName varchar2(25),
+  3  Animals Animals_NT)
+  4  nested table Animals store as Animals_NT_TAB;
+
+Table created.
+
+--Insert animals into the Breeders table using the nested table
+SQL> insert into Breeders(BreederName, Animals) values('Jane Doe',
+  2  Animals_NT(
+  3  Animal_Ty('cat','dickens','15-apr-00'),
+  4  Animal_Ty('dog','Dog','15-sep-07'),
+  5  Animal_Ty('dog','Tank','14-sep-09')
+  6  )
+  7  );
+
+1 row created.
+
+--Selects the data that is in the nested table
+SQL> select BreederName, N.Name, N.Birthdate from Breeders, TABLE(Breeders.Anima
+ls) N;
+
+BREEDERNAME               NAME                      BIRTHDATE
+------------------------- ------------------------- ---------
+Jane Doe                  dickens                   15-APR-00
+Jane Doe                  Dog                       15-SEP-07
+Jane Doe                  Tank                      14-SEP-09
+
+--Selects the pet Tank from the nested table in Breeders
+SQL> select BreederName, N.Name, N.Birthdate from Breeders, TABLE(Breeders.Anima
+ls) N where N.Name = 'Tank';
+
+BREEDERNAME               NAME                      BIRTHDATE
+------------------------- ------------------------- ---------
+Jane Doe                  Tank                      14-SEP-09
+
+--Inserts another animal into the nested table in breeders
+SQL> insert into TABLE(select Animals from Breeders where BreederName = 'Jane Do
+e') values (Animal_ty('dog','charlie','01-Jan-15'));
+
+1 row created.
+
+--Updates the birthdate of the new animal added
+SQL> update TABLE(select Animals from Breeders where BreederName = 'Jane Doe') N
+ set N.Birthdate = '25-Dec-10' where N.Name = 'charlie';
+
+1 row updated.
+
+--Deletes the animal tank from the nested table
+SQL> delete TABLE(select Animals from Breeders where BreederName = 'Jane Doe') N
+ where N.Name = 'Tank';
+
+1 row deleted.
